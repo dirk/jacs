@@ -4,6 +4,10 @@
 
 A super-simple way to establish a client-server system using Jabber/XMPP. The protocol is heavily inspired by HTTP. (It even uses HTTP path formatting and status codes!)
 
+=== Installation
+
+	gem install jacs
+
 === Copyright
 
 Copyright (c) 2010 Dirk Gadsden. See LICENSE for details.
