@@ -82,7 +82,7 @@ module ActiveJabber
             :args => '',
             :timeout => 5.0
           }
-          if args.length > 1
+          if args.length >= 1
             # TODO: Logic to handle other ways of transforming data into a sendable format.
             if args.first.respond_to? :to_s
               opts[:args] = args.first.to_s
@@ -90,7 +90,8 @@ module ActiveJabber
             if args.second.is_a? Hash
               opts.merge! args.second
             end
-          elsif args.first.is_a? Hash
+          end
+          if args.first.is_a? Hash
             opts.merge! args.first
           end
           # TODO: Support more formats.

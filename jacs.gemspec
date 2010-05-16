@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'jacs'
-  s.version = '0.3'
+  s.version = '0.4.1'
   
   s.authors = ['Dirk Gadsden']
   s.date = '2010-05-14'

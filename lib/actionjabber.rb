@@ -25,9 +25,10 @@ module ActionJabber
   end
   class Server
     # Sets up the server. The @controller@ argument is expected to be a class, not an instance.
-    def initialize(username, password, controller)
+    def initialize(username, password, controller, debug = false)
       @jabber = Jabber::Simple.new(username, password)
       @controller = controller # Should be a class.
+      @debug = debug
     end
     # Initiates the loop to check for new messages.
     def run!
@@ -40,18 +41,27 @@ module ActionJabber
           hash = parts.first
           path_parts = parts.last.split('?', 2)
           request = Request.new(hash, from, path_parts.first, ((path_parts.length == 2) ? path_parts.last : ''))
-          #begin
+          # TODO: DRY this portion up.
+          if @debug
+            # Allow errors to fall through and kill the process.
             controller_response = @controller.route!(request)
             response = {:status => 200, :data => ''}.merge(controller_response)
             respond_to request, :status => response[:status], :data => response[:data]
-          #rescue
-          #  respond_to request, :status => 500
-          #  puts "Error responding to #{message.from.to_s.strip}:"
-          #  puts $!
-          #else
-          #  puts "Responded to '#{from}' in #{(Time.now - start).to_s} seconds."
-          #end
-          puts "Responded to '#{from}' in #{(Time.now - start).to_s} seconds.\n"
+            puts "Responded to '#{from}' in #{(Time.now - start).to_s} seconds."
+          else
+            # Capture the errors so that the server keeps on running.
+            begin
+              controller_response = @controller.route!(request)
+              response = {:status => 200, :data => ''}.merge(controller_response)
+              respond_to request, :status => response[:status], :data => response[:data]
+            rescue
+              respond_to request, :status => 500
+              puts "Error responding to #{message.from.to_s.strip}:"
+              puts $!
+            else
+              puts "Responded to '#{from}' in #{(Time.now - start).to_s} seconds."
+            end
+          end
           #puts "\n"
         end
       end
