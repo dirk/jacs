@@ -22,7 +22,7 @@ module ActiveJabber
       request_parts = []
       Base::Request.new(self, nil, request_parts).send(method, *args)
     end
-    # Sends a request to the client, path should be formatted like "/users" and @opts@ may include a @:args@ (a string) and @:timeout@ (in seconds) keys.
+    # Sends a request to the client, path should be formatted like "/users" and +opts+ may include a +:args+ (a string) and +:timeout+ (in seconds) keys.
     def request(path, opts)
       hash = self.generate_hash
       message = hash + ':' + path.gsub(/\?$/, '')

@@ -24,7 +24,7 @@ module ActionJabber
     end
   end
   class Server
-    # Sets up the server. The @controller@ argument is expected to be a class, not an instance.
+    # Sets up the server. The +controller+ argument is expected to be a class, not an instance.
     def initialize(username, password, controller, debug = false)
       @jabber = Jabber::Simple.new(username, password)
       @controller = controller # Should be a class.
