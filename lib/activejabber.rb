@@ -1,5 +1,6 @@
 module ActiveJabber
   class Base
+    # Returns memoizes and returns a Jabber object, will try to reconnect if disconnected.
     def jabber
       if @jabber
         if @jabber.connected?
@@ -16,18 +17,17 @@ module ActiveJabber
       @username = username
       @password = password
     end
+    # Used to initiate the smart chaining logic.
     def method_missing(method, *args)
       request_parts = []
       Base::Request.new(self, nil, request_parts).send(method, *args)
     end
+    # Sends a request to the client, path should be formatted like "/users" and @opts@ may include a @:args@ (a string) and @:timeout@ (in seconds) keys.
     def request(path, opts)
       hash = self.generate_hash
       message = hash + ':' + path.gsub(/\?$/, '')
       if opts[:args]
         message += ('?' + opts[:args])
-      end
-      unless opts[:timeout]
-        opts[:timeout] = 5.0
       end
       
       self.jabber.deliver(Jabber::JID.new('accounts@madelike.com'), message)
@@ -50,6 +50,7 @@ module ActiveJabber
         return {:status => 408, :data => '', :latency => (Time.now - start)} # Request timeout
       end
     end
+    # Creates a random hash used to uniquely identify each method.
     def generate_hash
       ActiveSupport::SecureRandom.hex(8) # Generates 16 character hexdecimal string.
     end
@@ -64,6 +65,7 @@ module ActiveJabber
           @parts << ('/' + part.to_s)
         end
       end
+      # Determines if this is a known format.
       def parse_format(method)
         if method.to_s == 'json' or method.to_s == 'json?'
           :json
@@ -71,34 +73,32 @@ module ActiveJabber
           :text
         end
       end
+      # The chainable magic happens here.
       def method_missing(method, *args)
         if args.length > 0 or self.parse_format(method) or method.to_s.ends_with? '!'
           format = self.parse_format(method)
           opts = {
             :format => (format or :text),
-            :args => ''
+            :args => '',
+            :timeout => 5.0
           }
-          if (args.second.is_a? Hash or args.second.nil?) and format == :json
-            if args.first
-              opts[:args] = (args.first.is_a?(String) ? args.first : args.first.to_json)
+          if args.length > 1
+            # TODO: Logic to handle other ways of transforming data into a sendable format.
+            if args.first.respond_to? :to_s
+              opts[:args] = args.first.to_s
             end
-            if args.second
+            if args.second.is_a? Hash
               opts.merge! args.second
             end
           elsif args.first.is_a? Hash
             opts.merge! args.first
-          elsif args.first.respond_to? :to_s
-            opts[:args] = args.first.to_s
-            if args.second.is_a? Hash
-              opts.merge! args.second
-            end
           end
+          # TODO: Support more formats.
           if format == :json
             @parts << '.json'
           else
-            @parts << ('/' + method.to_s.gsub(/!$/, ''))
+            @parts << ('/' + method.to_s.gsub(/[?!]$/, ''))
           end
-          
           @base.request(@parts.join(''), opts)
         else
           Request.new(@base, method, @parts)

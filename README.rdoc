@@ -8,6 +8,30 @@ A super-simple way to establish a client-server system using Jabber/XMPP. The pr
 
 	gem install jacs
 
+=== Example
+
+Server code would look like:
+
+	require 'rubygems'
+	require 'jacs'
+	
+	class JabberServer < ActionJabber::Base
+		route '/users' do
+			return ['John Smith', 'Jane Doe']
+		end
+	end
+	server = ActionJabber::Server.new('username@host', 'password', JabberServer)
+	server.run!
+
+Client code would look like:
+
+	require 'rubygems'
+	require 'jacs'
+	
+	class JabberClient < ActiveJabber::Base; end
+	client = JabberClient.new('username@host', 'password')
+	users = client.users!
+
 === Copyright
 
 Copyright (c) 2010 Dirk Gadsden. See LICENSE for details.
