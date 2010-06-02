@@ -31,7 +31,7 @@ module ActionJabber
       @debug = debug
     end
     # Initiates the loop to check for new messages.
-    def run!
+    def run!(frequency = 0)
       while @jabber.connected?
         @jabber.received_messages do |message|
           start = Time.now
@@ -63,6 +63,10 @@ module ActionJabber
             end
           end
           #puts "\n"
+        end
+        if frequency > 0
+          # Keep it from hogging up CPU cycles.
+          sleep frequency
         end
       end
     end
